@@ -1,5 +1,25 @@
 <?php
 
+class ReddogsAction
+{
+    public function __call($method, $arguments)
+    {
+        do_action($method);
+        //         echo $method . '<br>';
+    }
+}
+$reddogsAction = new ReddogsAction();
+
+class ReddogsElement
+{
+    public function __call($method, $arguments)
+    {
+        reddogs_element($method);
+        //         echo $method . '<br>';
+    }
+}
+$reddogsElement = new ReddogsElement();
+
 /**
  * Register autoloader
  */

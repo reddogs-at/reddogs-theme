@@ -1,0 +1,17 @@
+{
+  "name": "reddogs-theme",
+  "homepage": "https://github.com/reddogs-at/reddogs-theme",
+  "authors": [
+    "jolicht <johannes@lichtenwallner.at>"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
