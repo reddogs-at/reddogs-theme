@@ -19,6 +19,19 @@ return array(
         'body' => array(
             'tag' => 'body'
         ),
+        'comments_title' => array(
+            'tag' => 'h2',
+        ),
+        'comments_section' => array(
+            'tag' => 'section',
+            'attributes' => array(
+                'class' => 'comments-area',
+                'id' => 'comments'
+            )
+        ),
+        'comments_item' => array(
+            'tag' => 'article',
+        ),
         'navbar' => array(
             'tag' => 'nav',
             'attributes' => array(
@@ -120,6 +133,20 @@ return array(
                 'callable' => array($reddogsElement, 'site_container')
             ),
         ),
+        'reddogs_comments_section' => array(
+            'title' => array(
+                'callable' => array($reddogsElement, 'comments_title')
+            ),
+            'comments' => array(
+                'callable' => 'reddogs_comments_content'
+            )
+
+        ),
+        'reddogs_comments_title' => array(
+            'content' => array(
+                'callable' => 'reddogs_comments_title_content'
+            )
+        ),
         'reddogs_init' => array(
             'init_post_structure' => array(
                 'callable' => 'reddogs_init_post_structure'
@@ -187,6 +214,9 @@ return array(
             'entry_footer' => array(
                 'callable' => 'reddogs_entry_footer',
             ),
+            'comments' => array(
+                'callable' => 'reddogs_comments'
+            )
         ),
         'reddogs_sidebar_first' => array(
             'sidebar_first_content' => array(
@@ -291,4 +321,22 @@ return array(
             'sidebars' => 'right'
         )
     ),
+    'post_thumbnail' => array(
+        'fallback' => array(
+            'archive' => 'home',
+            'archive-category' => 'archive',
+            'archive-date' => 'archive',
+            'archive-date-year' => 'archive-date',
+            'archive-tag' => 'archive',
+            'archive-tax' => 'archive',
+            'frontpage' => 'single-post',
+            'home' => 'single-post',
+            'page' => 'single-post',
+            'search' => 'archive',
+        ),
+        'size' => array(
+            'single-post' => 'large'
+        )
+    ),
 );
+

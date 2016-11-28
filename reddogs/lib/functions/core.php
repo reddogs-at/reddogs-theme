@@ -149,6 +149,105 @@ function reddogs_entry_footer()
     }
 }
 
+function reddogs_comments()
+{
+    /**
+     * section
+     *  h2
+     *  article
+     */
+    if ( comments_open() || get_comments_number() ) {
+        reddogs_element('comments_section');
+//         reddogs_element_open('comments_section');
+//         $comments = get_comments(array(
+// 			'post_id' => get_the_ID(),
+// 			'status' => 'approve'
+// 		));
+//         wp_list_comments(array(
+//             'per_page' => 10,
+//             'reverse_top_level' => true
+//         ), $comments);
+//         reddogs_element_close('comments_section');
+    }
+}
+
+function reddogs_comments_title_content()
+{
+    $comments_number = get_comments_number();
+    if (1 == $comments_number) {
+        printf( _x( 'One comment on &ldquo;%s&rdquo;', 'comments title', 'reddogs' ), get_the_title() );
+    } else {
+        printf(
+            /* translators: 1: number of comments, 2: post title */
+            _nx(
+                '%1$s comments on &ldquo;%2$s&rdquo;',
+                '%1$s comments on &ldquo;%2$s&rdquo;',
+                $comments_number,
+                'comments title',
+                'reddogs'
+                ),
+            number_format_i18n( $comments_number ),
+            get_the_title()
+        );
+    }
+}
+
+function reddogs_comments_content()
+{
+    $comments = get_comments(array(
+		'post_id' => get_the_ID(),
+		'status' => 'approve'
+	));
+    wp_list_comments(array(
+        'style' => 'div',
+        'per_page' => 10,
+        'reverse_top_level' => true,
+         'callback' => 'reddogs_comments_item',
+//         'walker' => new Reddogs_Walker_Comment(),
+    ), $comments);
+}
+
+function reddogs_comments_item($comment, $args, $depth)
+{
+if ( 'div' === $args['style'] ) {
+        $tag       = 'div';
+        $add_below = 'comment';
+    } else {
+        $tag       = 'li';
+        $add_below = 'div-comment';
+    }
+    ?>
+    <<?php echo $tag ?> <?php comment_class( empty( $args['has_children'] ) ? '' : 'parent' ) ?> id="comment-<?php comment_ID() ?>">
+    <?php if ( 'div' != $args['style'] ) : ?>
+        <div id="div-comment-<?php comment_ID() ?>" class="comment-body">
+    <?php endif; ?>
+    <div class="comment-author vcard">
+        <?php if ( $args['avatar_size'] != 0 ) echo get_avatar( $comment, $args['avatar_size'] ); ?>
+        <?php printf( __( '<cite class="fn">%s</cite> <span class="says">says:</span>' ), get_comment_author_link() ); ?>
+    </div>
+    <?php if ( $comment->comment_approved == '0' ) : ?>
+         <em class="comment-awaiting-moderation"><?php _e( 'Your comment is awaiting moderation.' ); ?></em>
+          <br />
+    <?php endif; ?>
+
+    <div class="comment-meta commentmetadata"><a href="<?php echo htmlspecialchars( get_comment_link( $comment->comment_ID ) ); ?>">
+        <?php
+        /* translators: 1: date, 2: time */
+        printf( __('%1$s at %2$s'), get_comment_date(),  get_comment_time() ); ?></a><?php edit_comment_link( __( '(Edit)' ), '  ', '' );
+        ?>
+    </div>
+
+    <?php comment_text(); ?>
+
+    <div class="reply">
+        <?php comment_reply_link( array_merge( $args, array( 'add_below' => $add_below, 'depth' => $depth, 'max_depth' => $args['max_depth'] ) ) ); ?>
+    </div>
+    <?php if ( 'div' != $args['style'] ) : ?>
+    </div>
+    <?php endif; ?>
+    <?php
+    }
+
 /**
  * Init post structure
  */
@@ -188,14 +287,120 @@ function reddogs_init_post_structure()
     }
 }
 
-// add_action('reddogs_init', 'reddogs_init_post_structure');
+function reddogs_post_thumbnail()
+{
+    if (has_post_thumbnail()) :
+        $size = reddogs_get_post_thumbnail_size();
+        reddogs_element_open('post_thumbnail');
+        if (is_singular()) : ?>
+            <?php the_post_thumbnail($size); ?>
+        <?php else :?>
+            <a href="<?php the_permalink()?>"><?php the_post_thumbnail($size); ?></a>
+        <?php endif;
+        reddogs_element_close('post_thumbnail');
+	endif;
+}
 
-if (!function_exists('reddogs_post_structure_post')) :
+function reddogs_get_post_thumbnail_size($key = null)
+{
+    global $reddogs;
+
+    if (null === $key) {
+        $key = reddogs_get_page_key();
+    }
+
+    $fallback = $reddogs['post_thumbnail']['fallback'];
+
+
+    if (isset($reddogs['post_thumbnail']['size'][$key])) {
+        return $reddogs['post_thumbnail']['size'][$key];
+    } else {
+        if (isset($fallback[$key])) {
+            return reddogs_get_post_thumbnail_size($fallback[$key]);
+        } else {
+            if (0 === strpos($key, 'single-post-format-')) {
+                return reddogs_get_post_thumbnail_size('single-post');
+            }
+            if (0 === strpos($key, 'archive-tax-')) {
+                return reddogs_get_post_thumbnail_size('archive-tax');
+            }
+            if (0 === strpos($key, 'archive-')) {
+                return reddogs_get_post_thumbnail_size('archive');
+            }
+            if (0 === strpos($key, 'page-')) {
+                return reddogs_get_post_thumbnail_size('page');
+            }
+        }
+    }
+
+}
+
+function reddogs_get_page_key()
+{
+    if (is_404()) {
+        return '404';
+    } elseif (is_front_page()) {
+        return 'frontpage';
+    } elseif (is_home()) {
+        return 'home';
+    } elseif (is_single()) {
+        $postType = get_post_type();
+        if ('post' == $postType) {
+            $key = 'single-post';
+        } else {
+            $key = 'single-' .  get_post_type();
+        }
+
+        if (post_type_supports($postType, 'post_formats')) {
+            $key .= '-format-' . get_post_format();
+        }
+        return $key;
+    } elseif (is_archive()) {
+        $key = 'archive';
+        if (is_date()) {
+            $key .= '-date';
+            if (is_year()) {
+                $key .= '-year';
+            } elseif (is_month()) {
+                $key .= '-month';
+            } elseif (is_day()) {
+                $key .= '-day';
+            }
+        } elseif (is_category()) {
+            $key .= '-category';
+        } elseif (is_tag()) {
+            $key .= '-tag';
+        } elseif (is_tax()) {
+            $key .= '-tax-' . get_query_var( 'taxonomy' );
+        } elseif (is_post_type_archive()) {
+            $key .= '-' . get_query_var( 'post_type' );
+        }
+        return $key;
+    } elseif (is_page()) {
+        $template_name = get_post_meta( get_post()->ID, '_wp_page_template', true );
+        if (('default' == $template_name) or ('' == $template_name)) {
+            return 'page';
+        } else {
+            $keys[] = 'page';
+            if ('php' == pathinfo($template_name, PATHINFO_EXTENSION )) {
+                $template_name = substr($template_name, 0, -4);
+            }
+            return 'page-' . strtr($template_name, array('/' => '-'));
+        }
+
+
+    } elseif (is_search()) {
+        return 'search';
+    }
+}
+
+if (!function_exists('reddogs_post_structure_page')) :
 /**
  * Post structure page
  */
 function reddogs_post_structure_page()
 {
+    add_action('reddogs_entry_header_after', 'reddogs_post_thumbnail');
     add_action('reddogs_entry_header', 'reddogs_entry_title');
     add_action('reddogs_entry_content', 'reddogs_the_content');
 }
@@ -336,6 +541,9 @@ function reddogs_entry_title()
 
 function reddogs_sidebar_first()
 {
+    if ('none' == reddogs_get_sidebar_selection()) {
+        return;
+    }
     if (has_action('reddogs_sidebar_first_content')) {
         reddogs_element('sidebar_first');
     }
@@ -343,6 +551,9 @@ function reddogs_sidebar_first()
 
 function reddogs_sidebar_second()
 {
+    if (!in_array(reddogs_get_sidebar_selection(), array('left-right', 'left-left', 'right-right'))) {
+        return;
+    }
     if (has_action('reddogs_sidebar_second_content')) {
         reddogs_element('sidebar_second');
     }
@@ -461,6 +672,8 @@ function reddogs_wrap_html_element_close($content, $name, $config) {
     return $content . reddogs_get_wrap_close( $config['wrap'] );
 }
 
+
+
 function reddogs_get_sidebar_selection()
 {
     global $reddogs;
@@ -534,3 +747,4 @@ function reddogs_get_sidebar_list()
 
     return $sidebars;
 }
+
