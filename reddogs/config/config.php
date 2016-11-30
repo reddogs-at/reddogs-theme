@@ -32,6 +32,22 @@ return array(
         'comments_item' => array(
             'tag' => 'article',
         ),
+        'comments_item_body' => array(
+            'attributes' => array(
+                'class' => array('comment-body'),
+            )
+        ),
+        'comments_item_header' => array(
+            'tag' => 'header'
+        ),
+        'comments_item_footer' => array(
+            'tag' => 'footer'
+        ),
+        'comments_item_author_vcard' => array(
+            'attributes' => array(
+                'class' => array('comment-author', 'vcard')
+            )
+        ),
         'navbar' => array(
             'tag' => 'nav',
             'attributes' => array(
@@ -146,6 +162,33 @@ return array(
             'content' => array(
                 'callable' => 'reddogs_comments_title_content'
             )
+        ),
+        'reddogs_comments_item_body' => array(
+            'header' => array(
+                'callable' => array($reddogsElement, 'comments_item_header')
+            ),
+            'content' => array(
+                'callable' => array($reddogsElement, 'comments_item_content')
+            ),
+            'footer' => array(
+                'callable' => array($reddogsElement, 'comments_item_footer')
+            ),
+        ),
+        'reddogs_comments_item_content' => array(
+            'author_vcard' => array(
+                'callable' => array($reddogsElement, 'comments_item_author_vcard'),
+            ),
+            'text' => array(
+                'callable' => 'reddogs_comments_item_content_text'
+            ),
+        ),
+        'reddogs_comments_item_author_vcard' => array(
+            'avatar' => array(
+                'callable' => 'reddogs_comments_item_author_vcard_avatar'
+            ),
+            'link' => array(
+                'callable' => 'reddogs_comments_item_author_link'
+            ),
         ),
         'reddogs_init' => array(
             'init_post_structure' => array(
